@@ -8,7 +8,7 @@ show_help() {
 
 
   printf %s\\n "" "JOBS" >&2
-  <"${0}" awk '
+  <"${NAME}" awk '
     /^my_make/ { run = 1; }
     /^\}/ { run = 0; }
     run && /^    in|^    ;;/ {
@@ -35,15 +35,14 @@ SAMPLE_SIZE='123'
 
 # Greater Project
 FRONTEND="../ablc-main"
-PUBLIC="../docs/a-bas-le-ciel" # dir to which to write files
 PUBLIC_DOMAIN="/a-bas-le-ciel"
 
 # Data Directories (This project)
 INTERIMD="../ablc-data/download"
 METADATA="../ablc-data/metadata"
 SUBTITLE="../ablc-data/subtitle"
-DATA_PUBLISHED="../ablc-data/final"
-MAIN_PUBLISHED="../ablc-main/final"
+DATA_PUBLISHED="../ablc-data/static"
+MAIN_PUBLISHED="../ablc-main/static"
 DATABASE="../ablc-data/archive.txt"
 
 main() {
@@ -118,34 +117,39 @@ my_make() {
       cp "${DATA_PUBLISHED}/subtitle.json" "${MAIN_PUBLISHED}/subtitle.json"
       cp "${DATA_PUBLISHED}/playlist.json" "${MAIN_PUBLISHED}/playlist.json"
 
-    ;; build-frontend)
+    ;; build-frontend)  # <output-public-dir>
       errln "=== 4: Building public directory for server ==="
+      [ -f "${2}" ] && die FATAL 1 "Arg two '${2}' must be a directory"
+      # ${2}: "../public/a-bas-le-ciel", dir to which to write files
       must_be_in_branch "main"
 
-      mkdir -p "${PUBLIC}"
+      mkdir -p "${2}"
       node build.mjs \
-        "${MAIN_PUBLISHED}/metadata.json" \
+        "${MAIN_PUBLISHED}/video.json" \
         "${MAIN_PUBLISHED}/playlist.json" \
-        "${PUBLIC}" \
+        "${2}" \
         "${PUBLIC_DOMAIN}" \
-        "${MAIN_PUBLISHED}/subtitle.json" \
+        "${MAIN_PUBLISHED}/transcripts.json" \
         ${FORCE} || exit "$?"
 
     ;; build-frontend-local)
       errln "=== 4: Building public directory for local development ==="
+      [ -f "${2}" ] && die FATAL 1 "Arg two '${2}' must be a directory"
+      # ${2}: "../public/a-bas-le-ciel", dir to which to write files
       must_be_in_branch "main"
 
-      mkdir -p "${PUBLIC}"
-      domain="$( realpath -P "${PUBLIC}"; printf a )"; domain="${domain%?a}"
+      mkdir -p "${2}"
+      domain="$( realpath -P "${2}"; printf a )"; domain="${domain%?a}"
       node "${FRONTEND}/build.mjs" \
         "${MAIN_PUBLISHED}/metadata.json" \
         "${MAIN_PUBLISHED}/playlist.json" \
-        "${PUBLIC}" \
+        "${2}" \
         "${domain}" \
         "${MAIN_PUBLISHED}/subtitle.json" \
         ${FORCE} || exit "$?"
 
-    ;; help|*)  show_help
+    ;; help|*)  errln "Invalid command '${1}'"; show_help
+
   esac
 }
 

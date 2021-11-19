@@ -33,7 +33,7 @@ export function process_args() {
   if (push_index != 5) {
     console.log(
 `Expected three arguments:
-  node '${process.argv[1]}' <video-json-path> <playlist-json-path> <path-to-write-folder> <public-path-for-links>
+  node '${process.argv[1]}' <metadata-json-path> <playlist-json-path> <path-to-write-folder> <public-path-for-links> <subtitle-json-path>
 
 Received:`,
       process.argv
