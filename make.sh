@@ -214,6 +214,35 @@ my_make() {
           && errln "Video '${id}' is already in archive"
       done
 
+    ;; status)
+      must_be_in_branch "data"
+      #info_count="$( "${ARCHIVER}" list-stems "${METADATA}" | wc -l )"
+      #subs_count="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
+
+      errln "=== Missing subtitles ==="
+      count=0
+      subs_missing='0'
+      for id in $( "${ARCHIVER}" list-stems "${METADATA}" ); do
+        count="$(( count + 1 ))"
+        if [ ! -e  "${SUBTITLE}/${id}.en.vtt" ]; then 
+          errln "  ${id}"
+          subs_missing="$(( subs_missing + 1 ))"
+        fi
+      done
+
+      errln "=== Missing metadata ==="
+      info_missing='0'
+      for id in $( "${ARCHIVER}" list-stems "${SUBTITLE}" ); do
+        if [ ! -e  "${METADATA}/${id}.info.json" ]; then 
+          errln "  ${id}"
+          info_missing="$(( info_missing + 1 ))"
+        fi
+      done
+
+      errln "There are $(( count + info_missing )) entries:"
+      errln "  ${info_missing} metadata files are missing"
+      errln "  ${subs_missing} subtitle files are missing"
+
     ;; test)
       for id in $( "${ARCHIVER}" list-stems "${METADATA}" ); do
         echo "done" >"${INTERIMD}/${id}"
