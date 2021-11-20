@@ -58,16 +58,24 @@ main() {
 my_make() {
   case "${1}"
     in all)
-    ;; update)  #git fetch channel
+    ;; update-data-environment)
+      errln "=== 0: Update the main branch ==="
+      must_be_in_branch "data"
+      pip3 install --upgrade youtube-dl
+      git fetch origin main
 
     ;; download-rss)
       errln "=== 1: Download updates by rss ==="
+      git fetch origin main
       must_be_in_branch "data"
+      mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
       "${ARCHIVER}" archive-by-rss "${CHANNEL_ID}" "${INTERIMD}" "${METADATA}" || exit "$?"
     ;; download-channel)
       errln "=== 1: Download updates by channel ==="
+      git fetch origin main
       must_be_in_branch "data"
-      "${ARCHIVER}" archive-by-channel "YOUTUBE_URL" "${INTERIMD}" ./archive.txt || exit "$?"
+      mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
+      "${ARCHIVER}" archive-by-channel "${YOUTUBE_URL}" "${INTERIMD}" ./archive.txt || exit "$?"
 
     ;; add-to-archive)
       errln "=== 2: Finalising archive ==="
@@ -103,6 +111,7 @@ my_make() {
       errln "=== 3: Copying a sample up to ${SAMPLE_SIZE} entries ==="
       must_be_in_branch "data"
 
+      mkdir -p "${MAIN_PUBLISHED}"
       jq "[limit(${SAMPLE_SIZE}; .[])]" "${DATA_PUBLISHED}/metadata.json" \
         >"${MAIN_PUBLISHED}/metadata.json"
       jq "[limit(${SAMPLE_SIZE}; .[])]" "${DATA_PUBLISHED}/subtitle.json" \
@@ -113,6 +122,7 @@ my_make() {
       errln "=== 3: Copy all data to frontend ==="
       must_be_in_branch "data"
 
+      mkdir -p "${MAIN_PUBLISHED}"
       cp "${DATA_PUBLISHED}/metadata.json" "${MAIN_PUBLISHED}/metadata.json"
       cp "${DATA_PUBLISHED}/subtitle.json" "${MAIN_PUBLISHED}/subtitle.json"
       cp "${DATA_PUBLISHED}/playlist.json" "${MAIN_PUBLISHED}/playlist.json"
@@ -148,6 +158,18 @@ my_make() {
         "${MAIN_PUBLISHED}/subtitle.json" \
         ${FORCE} || exit "$?"
 
+    ############################################################################
+    # Utils
+    ;; check-overlaps) # Validate we aren't downloading archived videos again
+      for id in $( "${ARCHIVER}" list-stems "${INTERIMD}" ); do
+        [ -e "${METADATA}/${id}.info.json" ] \
+          && errln "Video '${id}' is already in archive"
+      done
+
+    ;; test)
+      for id in $( "${ARCHIVER}" list-stems "${METADATA}" ); do
+        echo "done" >"${INTERIMD}/${id}"
+      done
     ;; help|*)  errln "Invalid command '${1}'"; show_help
 
   esac
@@ -155,7 +177,7 @@ my_make() {
 
 must_be_in_branch() {
   [ "$( git symbolic-ref -q HEAD )" = "refs/heads/${1}" ] \
-    || die FATAL 1 "Only download in 'data' branch"
+    || die FATAL 1 "Must be in the '${1}' branch to do this step"
 }
 
 errln() { printf %s\\n "$@" >&2; }

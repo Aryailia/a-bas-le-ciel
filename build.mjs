@@ -7,7 +7,6 @@ import playlist_page from './src/page-playlist.mjs';
 import video_page_promise from './src/page-video-page.mjs';
 import * as Utils from './src/utils.mjs';
 
-export const BASE = "/home/rai/interim/eisel/public/";
 export const MAX_LEN = 300; // For description
 
 
