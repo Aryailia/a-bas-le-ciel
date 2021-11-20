@@ -64,6 +64,8 @@ my_make() {
       pip3 install --upgrade youtube-dl
       git fetch origin main
 
+
+
     ;; download-rss)
       errln "=== 1: Download updates by rss ==="
       git fetch origin main
@@ -77,9 +79,12 @@ my_make() {
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
       "${ARCHIVER}" archive-by-channel "${YOUTUBE_URL}" "${INTERIMD}" ./archive.txt || exit "$?"
 
-    ;; add-to-archive)
-      errln "=== 2: Finalising archive ==="
+
+
+    ;; archive-meta-and-subs)
+      errln "=== 2: Adding metadata and youtube subs to archive ==="
       must_be_in_branch "data"
+      mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
 
       info1="$( "${ARCHIVER}" list-stems "${METADATA}" | wc -l )"
       subs1="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
@@ -89,26 +94,45 @@ my_make() {
       info2="$( "${ARCHIVER}" list-stems "${METADATA}" | wc -l )"
       subs2="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
 
-      "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" \
-        || exit "$?"
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" \
-        >/dev/null || exit "$?"
-      subs3="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
-
       errln "Archive before: ${info1} metadata entries and ${subs1} subtitle files"
       errln "Added:" \
         " - $(( info2 - info1 )) metadata entries," \
         " - $(( subs2 - subs1 )) youtube auto-subtitles" \
-        " - $(( subs3 - subs2 )) ai auto-subtitles" \
-      errln "Archive after:  ${info3} metadata entries and ${subs3} subtitle files"
+      errln "Archive after:  ${info2} metadata entries and ${subs2} subtitle files"
 
-      errln "" "Compiling 'metadata.json', 'subtitle.json', and 'playlists.json'"
+
+
+    ;; download-missing-subs)
+      errln "=== 3: Downloading and AI subtitling the ones YouTube did auto-sub ==="
+      must_be_in_branch "data"
+      mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
+      "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" \
+        || exit "$?"
+
+    ;; archive-missing-subs)
+      errln "=== 4: Adding metadata and youtube subs to archive ==="
+      must_be_in_branch "data"
+      mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
+
+      subs1="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" \
+        >/dev/null || exit "$?"
+      subs2="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
+
+      errln "Archive before: ${info1} metadata entries and ${subs1} subtitle files"
+      errln "Added:" \
+        " - $(( subs2 - subs1 )) ai auto-subtitles" \
+      errln "Archive after:  ${subs3} subtitle files"
+
+
+    ;; compile)
+      errln "=== 5: Compiling to 'compile' branch ==="
       <parse-info.mjs node - "${METADATA}" "${DATA_PUBLISHED}/metadata.json"
       <parse-subs.mjs node - "${SUBTITLE}" "${DATA_PUBLISHED}/subtitle.json"
       "${ARCHIVER}" download-playlist-list "${YOUTUBE_URL}" >"${DATA_PUBLISHED}/playlist.json"
 
     ;; sample-to-frontend)
-      errln "=== 3: Copying a sample up to ${SAMPLE_SIZE} entries ==="
+      errln "=== 6: Copying a sample up to ${SAMPLE_SIZE} entries ==="
       must_be_in_branch "data"
 
       mkdir -p "${MAIN_PUBLISHED}"
@@ -119,7 +143,7 @@ my_make() {
       cp "${DATA_PUBLISHED}/playlist.json" "${MAIN_PUBLISHED}/playlist.json"
 
     ;; copy-to-frontend)
-      errln "=== 3: Copy all data to frontend ==="
+      errln "=== 6: Copy all data to frontend ==="
       must_be_in_branch "data"
 
       mkdir -p "${MAIN_PUBLISHED}"
@@ -128,7 +152,7 @@ my_make() {
       cp "${DATA_PUBLISHED}/playlist.json" "${MAIN_PUBLISHED}/playlist.json"
 
     ;; build-frontend)  # <output-public-dir>
-      errln "=== 4: Building public directory for server ==="
+      errln "=== 7: Building public directory for server ==="
       [ -f "${2}" ] && die FATAL 1 "Arg two '${2}' must be a directory"
       # ${2}: "../public/a-bas-le-ciel", dir to which to write files
       must_be_in_branch "main"
@@ -143,7 +167,7 @@ my_make() {
         ${FORCE} || exit "$?"
 
     ;; build-frontend-local)
-      errln "=== 4: Building public directory for local development ==="
+      errln "=== 7: Building public directory for local development ==="
       [ -f "${2}" ] && die FATAL 1 "Arg two '${2}' must be a directory"
       # ${2}: "../public/a-bas-le-ciel", dir to which to write files
       must_be_in_branch "main"
