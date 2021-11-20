@@ -31,7 +31,7 @@ my_dir="$( pwd -P; printf a )"; my_dir="${my_dir%?a}"
 ARCHIVER="../yt-archive/archive.sh"
 CHANNEL_ID='UCWPKJM4CT6ES2BrUz9wbELw'
 YOUTUBE_URL="https://youtube.com/channel/${CHANNEL_ID}"
-SAMPLE_SIZE='123'
+SAMPLE_SIZE='33'
 
 # Greater Project
 FRONTEND="../ablc-main"
@@ -51,10 +51,27 @@ MAIN_PUBLISHED="${FRONTEND}/static"
 COMPILED_PUBLISHED="../ablc-compiled"
 
 main() {
-  FORCE=""
+  FORCE=''
+
+  # Options processing
+  args=''; literal='false'
+  for a in "$@"; do
+    "${literal}" || case "${a}"
+      in --)          literal='true'; continue
+      ;; -h|--help)   show_help
+      ;; -f|--force)  FORCE='--force'
+
+      ;; -*) die FATAL 1 "Invalid option '${a}'. See \`${NAME} -h\` for help"
+      ;; *)  args="${args} $( printf %s\\n "${a}" | eval_escape )"
+    esac
+    "${literal}" && args="${args} $( outln "${a}" | eval_escape )"
+  done
+
+  [ -z "${args}" ] && { show_help; exit 1; }
+  eval "set -- ${args}"
+
   my_make "$@"
 }
-
 
 
 # run: sh % archive-rss
@@ -258,6 +275,8 @@ must_be_in_branch() {
 }
 
 errln() { printf %s\\n "$@" >&2; }
+eval_escape() { <&0 sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/'/"; }
 die() { printf %s "${1}: " >&2; shift 1; printf %s\\n "$@" >&2; exit "${1}"; }
+
 
 main "$@"

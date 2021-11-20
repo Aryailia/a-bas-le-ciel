@@ -24,14 +24,27 @@ export function head(title) {
       }
     }
 
+
+    /* Palette
+      #FAF9FA
+      #8695A8
+      #E39940
+      #A05148
+      #2B2F3A
+    */
+    /* Colour */
+    body           { background: #DAD9DA; }
+    .coloured-item { background: #FDFDFA; }
+    nav, footer    { background: #C5F6DF; }
+    /* nav            { color: #FAF9FA; } */
+
     /* Overall structure */
     /* top right bottom left */
     main {  padding: 40px 20px 20px 20px; }
     nav {
       position: fixed;
       top: 0px;
-      border-bottom: solid 1px black;
-      background-color: white;
+      /* border-bottom: solid 1px black; */
       height: 40px;
       width: 100%;
     }
@@ -45,7 +58,7 @@ export function head(title) {
       float: right;
     }
     footer {
-      border-top: solid 1px black;
+      /* border-top: solid 1px black; */
       padding-top: 8px;
       text-align: center;
     }

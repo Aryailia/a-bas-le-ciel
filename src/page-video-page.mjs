@@ -12,7 +12,7 @@ export default function video_page_promise(config, rel_path, video_data, sub_has
 </head>
 <body>
 ${Headers.navbar(config, rel_path)}
-  <main>
+  <main class="coloured-item">
     <iframe src="https://www.youtube.com/embed/${id}" width="560" height="315" frameborder="0">
       <a href="https://youtube-iframe.com"></a>
     </iframe>

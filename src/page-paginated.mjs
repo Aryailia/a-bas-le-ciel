@@ -33,7 +33,7 @@ export default function paginated_index(
     <section class="paginated-list">
       <div class="topleft">${previous}</div>
       <div class="topright">${next}</div>
-      <ol class="list" start="${start + 1}">${
+      <ol class="list">${
         paginated_index_main(config, video_list, start, close)}
       </ol>
       <div class="botleft">${previous}</div>
@@ -53,12 +53,13 @@ function paginated_index_main(config, video_list, start, close) {
     const { id, url, title, upload_date, description, thumbnail } = video_list[start + i];
     // Need 'v-' because github-pages privates files prefixed by underscore
     subarray[i] = `
-      <li><div class="paginated-item">
+      <li class="paginated-item coloured-item">
+        <div class="number">${start + 1 + i}</div>
         <img class="thumbnail" src="${thumbnail}" width="100%">
         <h2 class="title"><a href="${config.domain}/video/v-${id}.html">${title}</a></h2>
         <p class="date">${Headers.format_date(upload_date)} <a href="${url}">[YT link]</a></p>
         <p class="description">${Headers.format_desc(description)}</p>
-      </div></li>`;
+      </li>`;
   }
   return subarray.join("");
 }
@@ -89,6 +90,12 @@ const css = `
 .paginated-list .botleft  { grid-area: botleft; }
 .paginated-list .botright { grid-area: botright; }
 
+.paginated-item {
+  padding: 30px 20px;
+}
+.paginated-item .number   {
+  padding: 0px 10px 0px 0px; /* TRBL */
+}
 .paginated-item .thumbnail   {
   width: 336px;
   margin-right: 10px;
@@ -111,12 +118,13 @@ const css = `
 .paginated-item {
   display: grid;
   grid-template-areas:
-    "thumbnail title"
-    "thumbnail date"
-    "thumbnail description";
+    "number thumbnail title"
+    "number thumbnail date"
+    "number thumbnail description";
   grid-template-rows: auto 2em 1fr;
   height: 188px;
 }
+.paginated-item .number      { grid-area: number; }
 .paginated-item .thumbnail   { grid-area: thumbnail; }
 .paginated-item .title       { grid-area: title; }
 .paginated-item .date        { grid-area: date; }

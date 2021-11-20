@@ -7,13 +7,16 @@ export default function playlist_page(config, rel_path, playlist_list) {
 <html>
 <head>${
   Headers.head("Archive of Eisel Mazard's videos")}
+  <style>
+    ul { padding: 30px 60px; }
+  </style>
 </head>
 <body>${
   Headers.navbar(config, rel_path)}
   <main class="thin-column">
     <aside></aside>
     <section>
-      <ul>${
+      <ul class="coloured-item">${
         format_playlists(config, playlist_list)}
       </ul>
     </section>

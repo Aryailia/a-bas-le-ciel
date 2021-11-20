@@ -7,12 +7,15 @@ export default function home_page(config, rel_path, playlist_list) {
 <html>
 <head>${
   Headers.head("Archive of Eisel Mazard's videos")}
+  <style>
+    section { padding: 30px; }
+  </style>
 </head>
 <body>${
   Headers.navbar(config, rel_path)}
   <main class="thin-column">
     <aside></aside>
-    <section>
+    <section class="coloured-item">
       <p>
         This site was created by <a href="https://aryailia.site/">Aryailia</a>.
         If you find any problems submit an issue on the <a href="https://github.com/Aryailia/aryailia.github.io">GitHub page</a> for this project.
