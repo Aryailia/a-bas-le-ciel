@@ -1,6 +1,7 @@
 // TODO: Not sure how to get this working with passing as STDIN to `| node -`
 //import { promises as Fs } from 'fs';
 const Fs = require('fs').promises;
+const FsSync = require('fs');
 //run: node % transcripts out
 
 // Need this because we are of passing to node via STDIN
@@ -24,19 +25,38 @@ const Fs = require('fs').promises;
   for (let i = 0; i < length; ++i) {
     const filename = webttv_list[i];
     if (filename.endsWith(".vtt")) {
-      result[index] = Fs.readFile(`${sub_dir}/${filename}`, "UTF8")
-        .then(parse_webvtt)
-        .then(text => ({
+      // Sync version
+      const contents = FsSync.readFileSync(`${sub_dir}/${filename}`, 'utf8');
+      const text = parse_webvtt(contents);
+      result[index] = {
           id: filename.substring(0, 11), // youtube ids are 11 characters
           text,
-        }))
-        //.then(transcript => Fs.writeFile(`${out_dir}/${filename}`, transcript, "UTF8"));
+      };
+
+      // TODO: Figure out why the Async version is crashing
+
+      // Async verison
+
+      //console.error(`${sub_dir}/${filename}`);
+      //result[index] = Fs.readFile(`${sub_dir}/${filename}`, "UTF8")
+      //  .then(parse_webvtt)
+      //  .then(text => ({
+      //    id: filename.substring(0, 11), // youtube ids are 11 characters
+      //    text,
+      //  })).await;
+
       ++index;
+    } else {
+      console.error(`Error ${filename}`);
     }
   }
 
-  const output = await Promise.all(result);
-  Fs.writeFile(out_path, JSON.stringify(output), "UTF8");
+  // Sync
+  Fs.writeFile(out_path, JSON.stringify(result), "UTF8");
+
+  // Async
+  //const output = await Promise.all(result);
+  //Fs.writeFile(out_path, JSON.stringify(output), "UTF8");
 })();
 
 

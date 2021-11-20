@@ -37,13 +37,18 @@ SAMPLE_SIZE='123'
 FRONTEND="../ablc-main"
 PUBLIC_DOMAIN="/a-bas-le-ciel"
 
-# Data Directories (This project)
-INTERIMD="../ablc-data/download"
-METADATA="../ablc-data/metadata"
-SUBTITLE="../ablc-data/subtitle"
-DATA_PUBLISHED="../ablc-data/static"
-MAIN_PUBLISHED="../ablc-main/static"
-DATABASE="../ablc-data/archive.txt"
+# Directories from 'data' branch
+INTERIMD="./download"
+METADATA="./metadata"
+SUBTITLE="./subtitle"
+DATABASE="./archive.txt"
+SKIPFILE="./skipfile.csv"
+
+DATA_PUBLISHED="./publish"
+
+# Directories from 'main' branch
+MAIN_PUBLISHED="${FRONTEND}/static"
+COMPILED_PUBLISHED="../ablc-compiled"
 
 main() {
   FORCE=""
@@ -106,7 +111,8 @@ my_make() {
       errln "=== 3: Downloading and AI subtitling the ones YouTube did auto-sub ==="
       must_be_in_branch "data"
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
-      "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" \
+      "${ARCHIVER}" add-missing-subs \
+        "${INTERIMD}" "${METADATA}" "${SUBTITLE}" "${SKIPFILE}" \
         || exit "$?"
 
     ;; archive-missing-subs)
@@ -127,29 +133,47 @@ my_make() {
 
     ;; compile)
       errln "=== 5: Compiling to 'compile' branch ==="
-      <parse-info.mjs node - "${METADATA}" "${DATA_PUBLISHED}/metadata.json"
-      <parse-subs.mjs node - "${SUBTITLE}" "${DATA_PUBLISHED}/subtitle.json"
+      must_be_in_branch "data"
+      mkdir -p "${DATA_PUBLISHED}"
+
+      git fetch origin main
+      errln "Compiling metadata.json..."
+      git show origin/main:parse-info.mjs | node - "${METADATA}" "${DATA_PUBLISHED}/metadata.json"
+      errln "Compiling subtitle.json..."
+      git show origin/main:parse-subs.mjs | node - "${SUBTITLE}" "${DATA_PUBLISHED}/subtitle.json"
+      errln "Compiling playlist.json..."
       "${ARCHIVER}" download-playlist-list "${YOUTUBE_URL}" >"${DATA_PUBLISHED}/playlist.json"
+
+      errln "Pushing to 'compiled' branch"
+      # TODO: add check to make sure we can commit
+
+      git add "${DATA_PUBLISHED}"
+      git commit -m 'publishing compiled data'
+      git subtree split --prefix "${DATA_PUBLISHED#*/}" --branch compiled
+      git push --force origin compiled:compiled
+      git branch -D compiled
+      git reset HEAD^  # undo the commit for the main branch
+      rm -r "${DATA_PUBLISHED}"
 
     ;; sample-to-frontend)
       errln "=== 6: Copying a sample up to ${SAMPLE_SIZE} entries ==="
-      must_be_in_branch "data"
+      must_be_in_branch "main"
 
       mkdir -p "${MAIN_PUBLISHED}"
-      jq "[limit(${SAMPLE_SIZE}; .[])]" "${DATA_PUBLISHED}/metadata.json" \
+      jq "[limit(${SAMPLE_SIZE}; .[])]" "${COMPILED_PUBLISHED}/metadata.json" \
         >"${MAIN_PUBLISHED}/metadata.json"
-      jq "[limit(${SAMPLE_SIZE}; .[])]" "${DATA_PUBLISHED}/subtitle.json" \
+      jq "[limit(${SAMPLE_SIZE}; .[])]" "${COMPILED_PUBLISHED}/subtitle.json" \
         >"${MAIN_PUBLISHED}/subtitle.json"
-      cp "${DATA_PUBLISHED}/playlist.json" "${MAIN_PUBLISHED}/playlist.json"
+      cp "${COMPILED_PUBLISHED}/playlist.json" "${MAIN_PUBLISHED}/playlist.json"
 
     ;; copy-to-frontend)
       errln "=== 6: Copy all data to frontend ==="
-      must_be_in_branch "data"
+      must_be_in_branch "main"
 
       mkdir -p "${MAIN_PUBLISHED}"
-      cp "${DATA_PUBLISHED}/metadata.json" "${MAIN_PUBLISHED}/metadata.json"
-      cp "${DATA_PUBLISHED}/subtitle.json" "${MAIN_PUBLISHED}/subtitle.json"
-      cp "${DATA_PUBLISHED}/playlist.json" "${MAIN_PUBLISHED}/playlist.json"
+      cp "${COMPILED_PUBLISHED}/metadata.json" "${MAIN_PUBLISHED}/metadata.json"
+      cp "${COMPILED_PUBLISHED}/subtitle.json" "${MAIN_PUBLISHED}/subtitle.json"
+      cp "${COMPILED_PUBLISHED}/playlist.json" "${MAIN_PUBLISHED}/playlist.json"
 
     ;; build-frontend)  # <output-public-dir>
       errln "=== 7: Building public directory for server ==="
@@ -159,11 +183,11 @@ my_make() {
 
       mkdir -p "${2}"
       node build.mjs \
-        "${MAIN_PUBLISHED}/video.json" \
+        "${MAIN_PUBLISHED}/metadata.json" \
         "${MAIN_PUBLISHED}/playlist.json" \
         "${2}" \
         "${PUBLIC_DOMAIN}" \
-        "${MAIN_PUBLISHED}/transcripts.json" \
+        "${MAIN_PUBLISHED}/subtitle.json" \
         ${FORCE} || exit "$?"
 
     ;; build-frontend-local)
