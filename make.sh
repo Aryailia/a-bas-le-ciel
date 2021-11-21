@@ -90,13 +90,11 @@ my_make() {
 
     ;; download-rss)
       errln "=== 1: Download updates by rss ==="
-      git fetch origin main
       must_be_in_branch "data"
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
       "${ARCHIVER}" archive-by-rss "${CHANNEL_ID}" "${INTERIMD}" "${METADATA}" || exit "$?"
     ;; download-channel)
       errln "=== 1: Download updates by channel ==="
-      git fetch origin main
       must_be_in_branch "data"
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
       "${ARCHIVER}" archive-by-channel "${YOUTUBE_URL}" "${INTERIMD}" ./archive.txt || exit "$?"
@@ -153,11 +151,10 @@ my_make() {
       must_be_in_branch "data"
       mkdir -p "${DATA_PUBLISHED}"
 
-      git fetch origin main
       errln "Compiling metadata.json..."
-      git show origin/main:parse-info.mjs | node - "${METADATA}" "${DATA_PUBLISHED}/metadata.json"
+      git show local/main:parse-info.mjs | node - "${METADATA}" "${DATA_PUBLISHED}/metadata.json"
       errln "Compiling subtitle.json..."
-      git show origin/main:parse-subs.mjs | node - "${SUBTITLE}" "${DATA_PUBLISHED}/subtitle.json"
+      git show local/main:parse-subs.mjs | node - "${SUBTITLE}" "${DATA_PUBLISHED}/subtitle.json"
       errln "Compiling playlist.json..."
       "${ARCHIVER}" download-playlist-list "${YOUTUBE_URL}" >"${DATA_PUBLISHED}/playlist.json"
 
@@ -165,11 +162,11 @@ my_make() {
       # TODO: add check to make sure we can commit
 
       git add "${DATA_PUBLISHED}"
-      git commit -m 'publishing compiled data'
-      git subtree split --prefix "${DATA_PUBLISHED#*/}" --branch compiled
-      git push --force origin compiled:compiled
+      git commit -m 'publishing compiled data' || exit "$?"
+      git subtree split --prefix "${DATA_PUBLISHED#*/}" --branch compiled || exit "$?"
+      git push --force origin compiled:compiled || exit "$?"
       git branch -D compiled
-      git reset HEAD^  # undo the commit for the main branch
+      git reset HEAD^          # undo the commit for the main branch
       rm -r "${DATA_PUBLISHED}"
 
     ;; sample-to-frontend)
