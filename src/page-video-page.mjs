@@ -3,9 +3,8 @@ import { promises as Fs } from 'fs';
 
 //run: ../../make.sh eisel -l
 
-export default function video_page_promise(config, rel_path, video_data, sub_hashmap) {
-  const { id, url, title, upload_date, description } = video_data;
-  console.log(id);
+export default function video_page_promise(config, rel_path, video_data) {
+  const { id, url, title, upload_date, description, transcript } = video_data;
   return `
 <html>
 <head>${Headers.head(title)}
@@ -28,7 +27,7 @@ ${Headers.navbar(config, rel_path)}
     <p>${Headers.format_desc(description)}</p>
     <hr>
     <h2>Youtube Automatic Transcription</h2>
-    <div class="transcription">${sub_hashmap[id]}</div>
+    <div class="transcription">${transcript.replace(/\n/, "<br />")}</div>
   </main>
   ${Headers.footer()}
 </body>

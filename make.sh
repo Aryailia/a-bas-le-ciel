@@ -152,21 +152,21 @@ my_make() {
       mkdir -p "${DATA_PUBLISHED}"
 
       errln "Compiling metadata.json..."
-      git show local/main:parse-info.mjs | node - "${METADATA}" "${DATA_PUBLISHED}/metadata.json"
-      errln "Compiling subtitle.json..."
-      git show local/main:parse-subs.mjs | node - "${SUBTITLE}" "${DATA_PUBLISHED}/subtitle.json"
+      git show local/main:parse-metadata.js | node - \
+        "${METADATA}" "${SUBTITLE}" "${DATA_PUBLISHED}/metadata.json"
       errln "Compiling playlist.json..."
       "${ARCHIVER}" download-playlist-list "${YOUTUBE_URL}" >"${DATA_PUBLISHED}/playlist.json"
 
       errln "Pushing to 'compiled' branch"
       # TODO: add check to make sure we can commit
 
+      git branch -D compiled
+      commit_hash="$( git rev-parse HEAD )"
       git add "${DATA_PUBLISHED}"
-      git commit -m 'publishing compiled data' || exit "$?"
+      git commit -m "Publishing on $( date +%Y-%m-%d )" || exit "$?"
       git subtree split --prefix "${DATA_PUBLISHED#*/}" --branch compiled || exit "$?"
       git push --force origin compiled:compiled || exit "$?"
-      git branch -D compiled
-      git reset HEAD^          # undo the commit for the main branch
+      git reset "${commit_hash}"  # undo the commit for the main branch
       rm -r "${DATA_PUBLISHED}"
 
     ;; sample-to-frontend)
@@ -176,8 +176,6 @@ my_make() {
       mkdir -p "${MAIN_PUBLISHED}"
       jq "[limit(${SAMPLE_SIZE}; .[])]" "${COMPILED_PUBLISHED}/metadata.json" \
         >"${MAIN_PUBLISHED}/metadata.json"
-      jq "[limit(${SAMPLE_SIZE}; .[])]" "${COMPILED_PUBLISHED}/subtitle.json" \
-        >"${MAIN_PUBLISHED}/subtitle.json"
       cp "${COMPILED_PUBLISHED}/playlist.json" "${MAIN_PUBLISHED}/playlist.json"
 
     ;; copy-to-frontend)

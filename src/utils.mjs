@@ -1,6 +1,8 @@
 import {promises as Fs} from 'fs';
 
-const VALID_KEYS = ["id", "url", "upload_date", "title", "description", "thumbnail"];
+const VALID_KEYS = [
+  "id", "url", "upload_date", "title", "description", "thumbnail", "transcript"
+];
 const VALID_LENGTH = VALID_KEYS.length;
 
 //run: ../../make.sh eisel -l -f
@@ -61,6 +63,7 @@ export function validate_json_or_fail(json_array) {
       && check_is_valid_outside_tags(entry.title)
       && check_is_valid_outside_tags(entry.description)
       && check_is_valid_outside_tags(entry.thumbnail)
+      && check_is_valid_outside_tags(entry.transcript)
     )) {
       console.log("Entry contains invalid characters \" & ' < >", entry);
       process.exit(1)

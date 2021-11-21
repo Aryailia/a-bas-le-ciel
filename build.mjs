@@ -38,16 +38,6 @@ const playlist_list = await async function () {
   const string = await Fs.readFile(config.playlist_path, "UTF8");
   return JSON.parse(string);
 }();
-const sub_hashmap = await async function () {
-  const string = await Fs.readFile(config.transcript_path, "UTF8");
-  const json = JSON.parse(string);
-  const length = json.length;
-  const hashmap = {};
-  for (let i = 0; i < length; ++i) {
-    hashmap[json[i].id] = json[i].text;
-  }
-  return hashmap;
-}();
 Utils.validate_json_or_fail(video_list);
 
 // Start building the website
@@ -113,7 +103,7 @@ await async function () {
 
       results[j] = Utils.write(
         `${config.write_path}/video/v-${video_data.id}.html`,
-        new Promise(res => res(video_page_promise(config, url, video_data, sub_hashmap))),
+        new Promise(res => res(video_page_promise(config, url, video_data))),
         config.is_force,
       );
       index += 1;
