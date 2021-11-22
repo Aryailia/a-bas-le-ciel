@@ -41,7 +41,7 @@ PUBLIC_DOMAIN="/a-bas-le-ciel"
 INTERIMD="./download"
 METADATA="./metadata"
 SUBTITLE="./subtitle"
-DATABASE="./archive.txt"
+DATABASE="./archive.csv"
 SKIPFILE="./skipfile.csv"
 
 DATA_PUBLISHED="./publish"
