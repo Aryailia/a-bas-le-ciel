@@ -138,12 +138,13 @@ my_make() {
       subs1="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
       "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" \
         >/dev/null || exit "$?"
-      subs2="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
+      subs2_s="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
+      subs2_i="$( "${ARCHIVER}" list-stems "${INTERIMD}" | uniq | wc -l )"
 
-      errln "Archive before: ${info1} metadata entries and ${subs1} subtitle files"
-      errln "Added:" \
-        " - $(( subs2 - subs1 )) ai auto-subtitles" \
-      errln "Archive after:  ${subs3} subtitle files"
+      errln "Archive before: ${subs1} subtitle files"
+      errln " - $(( subs2_s - subs1 )) ai auto-subtitles added"
+      errln " - $(( subs2_i )) auto-subbed unsuccessfully"
+      errln "Archive after:  ${subs2_s} subtitle files"
 
 
     ;; compile)
