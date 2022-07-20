@@ -94,9 +94,9 @@ my_make() {
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
       "${ARCHIVER}" download-playlist-list "${YOUTUBE_URL}" >"${COMPILED_PUBLISHED}/playlist.json" || exit "$?"
       "${ARCHIVER}" archive-by-rss "${CHANNEL_ID}" "${INTERIMD}" "${DATABASE}" || exit "$?"
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}">"${DATABASE}" || exit "$?"
       "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}">"${DATABASE}" || exit "$?"
       my_make compile
 
     ;; update-by-channel)
@@ -105,9 +105,9 @@ my_make() {
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
       "${ARCHIVER}" download-playlist-list "${YOUTUBE_URL}" >"${COMPILED_PUBLISHED}/playlist.json" || exit "$?"
       "${ARCHIVER}" archive-by-channel "${CHANNEL_ID}" "${INTERIMD}" "${DATABASE}" || exit "$?"
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}">"${DATABASE}" || exit "$?"
       "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}">"${DATABASE}" || exit "$?"
       my_make compile
 
 
