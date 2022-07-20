@@ -92,27 +92,36 @@ my_make() {
       errln "=== 1: Download updates by rss ==="
       must_be_in_branch "data"
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
-      "${ARCHIVER}" download-playlist-list "${YOUTUBE_URL}" >"${COMPILED_PUBLISHED}/playlist.json" || exit "$?"
       "${ARCHIVER}" archive-by-rss "${CHANNEL_ID}" "${INTERIMD}" "${DATABASE}" || exit "$?"
       "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}">"${DATABASE}" || exit "$?"
       "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
       "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}">"${DATABASE}" || exit "$?"
-      my_make compile
 
     ;; update-by-channel)
       errln "=== 1: Download updates by channel ==="
       must_be_in_branch "data"
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
-      "${ARCHIVER}" download-playlist-list "${YOUTUBE_URL}" >"${COMPILED_PUBLISHED}/playlist.json" || exit "$?"
       "${ARCHIVER}" archive-by-channel "${CHANNEL_ID}" "${INTERIMD}" "${DATABASE}" || exit "$?"
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}">"${DATABASE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
       "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}">"${DATABASE}" || exit "$?"
-      my_make compile
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
 
+    ;; save-update)
+      errln "=== 2: Compile, commit, and push updates (if there are any) ==="
+      must_be_in_branch "data"
+
+      if [ "$( git status --short | wc -l )" -gt 0 ]; then
+        "${ARCHIVER}" list-as-archive "${METADATA}" >"${DATABASE}" || exit "$?"
+        git add "${METADATA}" "${SUBTITLE}" "${DATABASE}"
+        git commit -m "Update $( date +"%Y-%m-%d" )"
+        git push origin data
+        my_make compile
+      else
+        errln "No updates"
+      fi
 
     ;; compile)
-      errln "=== 5: Compiling to 'compile' branch ==="
+      errln "=== 3: Compiling to 'compile' branch ==="
       must_be_in_branch "data"
       mkdir -p "${DATA_PUBLISHED}"
 
