@@ -80,71 +80,35 @@ main() {
 my_make() {
   case "${1}"
     in all)
+      die FATAL 1 "WIP commmand"
+
     ;; update-data-environment)
       errln "=== 0: Update the main branch ==="
       must_be_in_branch "data"
       pip3 install --upgrade youtube-dl
       git fetch origin main
 
-
-
-    ;; download-rss)
+    ;; update-by-rss)
       errln "=== 1: Download updates by rss ==="
       must_be_in_branch "data"
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
-      "${ARCHIVER}" archive-by-rss "${CHANNEL_ID}" "${INTERIMD}" "${METADATA}" || exit "$?"
-    ;; download-channel)
+      "${ARCHIVER}" download-playlist-list "${YOUTUBE_URL}" >"${COMPILED_PUBLISHED}/playlist.json" || exit "$?"
+      "${ARCHIVER}" archive-by-rss "${CHANNEL_ID}" "${INTERIMD}" "${DATABASE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
+      "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
+      my_make compile
+
+    ;; update-by-channel)
       errln "=== 1: Download updates by channel ==="
       must_be_in_branch "data"
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
-      "${ARCHIVER}" archive-by-channel "${YOUTUBE_URL}" "${INTERIMD}" ./archive.txt || exit "$?"
-
-
-
-    ;; archive-meta-and-subs)
-      errln "=== 2: Adding metadata and youtube subs to archive ==="
-      must_be_in_branch "data"
-      mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
-
-      info1="$( "${ARCHIVER}" list-stems "${METADATA}" | wc -l )"
-      subs1="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
-
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" \
-        >/dev/null || exit "$?"
-      info2="$( "${ARCHIVER}" list-stems "${METADATA}" | wc -l )"
-      subs2="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
-
-      errln "Archive before: ${info1} metadata entries and ${subs1} subtitle files"
-      errln "Added:" \
-        " - $(( info2 - info1 )) metadata entries," \
-        " - $(( subs2 - subs1 )) youtube auto-subtitles" \
-      errln "Archive after:  ${info2} metadata entries and ${subs2} subtitle files"
-
-
-
-    ;; download-missing-subs)
-      errln "=== 3: Downloading and AI subtitling the ones YouTube did auto-sub ==="
-      must_be_in_branch "data"
-      mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
-      "${ARCHIVER}" add-missing-subs \
-        "${INTERIMD}" "${METADATA}" "${SUBTITLE}" "${SKIPFILE}" \
-        || exit "$?"
-
-    ;; archive-missing-subs)
-      errln "=== 4: Adding metadata and youtube subs to archive ==="
-      must_be_in_branch "data"
-      mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
-
-      subs1="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" \
-        >/dev/null || exit "$?"
-      subs2_s="$( "${ARCHIVER}" list-stems "${SUBTITLE}" | wc -l )"
-      subs2_i="$( "${ARCHIVER}" list-stems "${INTERIMD}" | uniq | wc -l )"
-
-      errln "Archive before: ${subs1} subtitle files"
-      errln " - $(( subs2_s - subs1 )) ai auto-subtitles added"
-      errln " - $(( subs2_i )) auto-subbed unsuccessfully"
-      errln "Archive after:  ${subs2_s} subtitle files"
+      "${ARCHIVER}" download-playlist-list "${YOUTUBE_URL}" >"${COMPILED_PUBLISHED}/playlist.json" || exit "$?"
+      "${ARCHIVER}" archive-by-channel "${CHANNEL_ID}" "${INTERIMD}" "${DATABASE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
+      "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
+      my_make compile
 
 
     ;; compile)
