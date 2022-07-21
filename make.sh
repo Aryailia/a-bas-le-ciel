@@ -105,7 +105,7 @@ my_make() {
 
       # Not sure why exactly youtube-dl creates this file
       errln "removing '${CHANNEL_ID}.info.json'"
-      rm "${METADATA}/${CHANNEL_ID}.info.josn"
+      rm "${METADATA}/${CHANNEL_ID}.info.json"
       "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
       "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
       "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
