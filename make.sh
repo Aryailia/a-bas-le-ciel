@@ -93,15 +93,19 @@ my_make() {
       must_be_in_branch "data"
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
       "${ARCHIVER}" archive-by-rss "${CHANNEL_ID}" "${INTERIMD}" "${DATABASE}" || exit "$?"
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}">"${DATABASE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
       "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
-      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}">"${DATABASE}" || exit "$?"
+      "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
 
     ;; update-by-channel)
       errln "=== 1: Download updates by channel ==="
       must_be_in_branch "data"
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
       "${ARCHIVER}" archive-by-channel "${YOUTUBE_URL}" "${INTERIMD}" "${DATABASE}" || exit "$?"
+
+      # Not sure why exactly youtube-dl creates this file
+      errln "removing '${CHANNEL_ID}.info.json'"
+      rm "${METADATA}/${CHANNEL_ID}.info.josn"
       "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
       "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
       "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
