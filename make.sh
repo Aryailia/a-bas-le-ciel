@@ -101,7 +101,7 @@ my_make() {
       errln "=== 1: Download updates by channel ==="
       must_be_in_branch "data"
       mkdir -p "${INTERIMD}" "${METADATA}" "${SUBTITLE}"
-      "${ARCHIVER}" archive-by-channel "${CHANNEL_ID}" "${INTERIMD}" "${DATABASE}" || exit "$?"
+      "${ARCHIVER}" archive-by-channel "${YOUTUBE_URL}" "${INTERIMD}" "${DATABASE}" || exit "$?"
       "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
       "${ARCHIVER}" add-missing-subs "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
       "${ARCHIVER}" add-to-archive "${INTERIMD}" "${METADATA}" "${SUBTITLE}" || exit "$?"
