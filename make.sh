@@ -122,6 +122,7 @@ my_make() {
         my_make compile
       else
         errln "No updates"
+        return 1
       fi
 
     ;; compile)
